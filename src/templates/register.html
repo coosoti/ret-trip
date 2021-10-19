@@ -20,13 +20,10 @@
 
                     <form method="POST">
                         {% csrf_token %}
-                        {% bootstrap_form_errors form %}
-                        {% bootstrap_label "Email" %}
-                        {% bootstrap_field form.username show_label=False placeholder="Email" %} 
-                        {% bootstrap_field form.password %}
-                        <button class="btn btn-warning btn-block">Log In</button>
+                        {% bootstrap_form form %}
+                        <button type="submit" class="btn btn-warning btn-block">Register</button>
                         <p class="text-center mt-3">
-                            Not a current user? <a href="/register/?next={{ request.GET.next }}"><b>Register Now</b></a>
+                            Already have an account? <a href="/login/?next={{ request.GET.next"><b>Log In</b></a>
                         </p>
                     </form>
                 </div>
