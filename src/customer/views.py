@@ -11,12 +11,16 @@ def home(request):
 @login_required(login_url="/login/?next=/customer/")
 def profile(request):
     user_form = forms.UserForm(instance=request.user)
+    customer_form = forms.CustomerForm(instance=request.user.customer)
     
     if request.method == "POST":
         user_form = forms.UserForm(request.POST, instance=request.user)
-        if user_form.is_valid():
+        customer_form = forms.CustomerForm(request.POST, request.FILES, instance=request.user.customer)
+        if user_form.is_valid() and customer_form.is_valid():
             user_form.save()
+            customer_form.save()
             return redirect(reverse('customer:profile'))
     return render(request, 'customer/profile.html', {
-        "user_form": user_form
+        "user_form": user_form,
+        "customer_form":customer_form
     })
