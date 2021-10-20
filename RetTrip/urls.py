@@ -17,6 +17,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from src import views
+from src.customer import views as customer_views
+from src.driver import views as driver_views
+
+customer_urlpatterns = [
+    path('', customer_views.home, name="home"),
+    path('profile/', customer_views.profile, name="profile"),
+]
+
+driver_urlpatterns = [
+    path('', driver_views.home, name="home")
+]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +38,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page="/")),
     path('register/', views.register),
 
-    path('customer/', views.customer_page),
-    path('driver/', views.driver_page)
+    path('customer/', include((customer_urlpatterns, 'customer'))),
+    path('customer/', include((driver_urlpatterns, 'driver'))),
 ]
