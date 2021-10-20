@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
+from django.contrib import messages
 from src.customer import forms
 @login_required()
 def home(request):
@@ -19,6 +20,7 @@ def profile(request):
         if user_form.is_valid() and customer_form.is_valid():
             user_form.save()
             customer_form.save()
+            messages.success(request, "You have successgully updated your profile")
             return redirect(reverse('customer:profile'))
     return render(request, 'customer/profile.html', {
         "user_form": user_form,

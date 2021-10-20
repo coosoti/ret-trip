@@ -6,6 +6,7 @@
     <title>Home</title>
 
     {% load bootstrap4 %}
+    {% load static %}
     {% bootstrap_css %}
     {% bootstrap_javascript jquery='full' %}
 
@@ -45,5 +46,26 @@
     <footer class="text-center mt-5 mb-5">
       &copy; RetTrip.com
     </footer>
+    
+    <script src="{% static 'js/bootoast.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/bootoast.min.css' %}">
+
+    <script>
+      function toast(message, type) {
+        bootoast.toast({
+          position: 'leftBottom',
+          message,
+          type,
+        });
+      }
+
+      {% if messages %}
+
+      {% for message in messages %}
+      toast('{{ message}}', '{{ message.tags }}')
+      {% endfor %}
+
+      {% endif %}
+    </script>
   </body>
 </html>
