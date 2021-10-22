@@ -150,3 +150,4 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'victorbenosa@gmail.com'
 EMAIL_HOST_PASSWORD = 'Kulundeng5'
 DEFAULT_FROM_EMAIL = 'RetTrip <no-reply@rettrip.localhost'
+FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, "rettrip-fbebc-firebase-adminsdk-5esv3-a580f9b165.json")
