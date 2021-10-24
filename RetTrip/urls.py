@@ -27,6 +27,7 @@ from src.driver import views as driver_views
 customer_urlpatterns = [
     path('', customer_views.home, name="home"),
     path('profile/', customer_views.profile, name="profile"),
+    path('payment_method/', customer_views.payment_method, name="payment_method"),
 ]
 
 driver_urlpatterns = [

@@ -1,0 +1,86 @@
+{% extends 'customer/base.html' %}
+{% load bootstrap4 %}
+
+{% block head %}
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<style>
+    .StripeElement {
+      height: 40px;
+      padding: 10px 12px;
+      width: 100%;
+      color: #32325d;
+      background-color: white;
+      /* border: 1px solid transparent; */
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+  
+      /* box-shadow: 0 1px 3px 0 #e6ebf1;
+      -webkit-transition: box-shadow 150ms ease;
+      transition: box-shadow 150ms ease; */
+    }
+  
+    .StripeElement--focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+    }
+  
+    .StripeElement--invalid {
+      border-color: #fa755a;
+    }
+  
+    .StripeElement--webkit-autofill {
+      background-color: #fefde5 !important;
+    }
+  </style>
+
+{% endblock %}
+
+{% block main %}
+<b class="text-secondary">Debit/Credit Card </b>
+
+<div class="card bg-white mt-2 mb-5">
+    <div class="card-body">
+        <form id="setup-form" data-secret="{{ client_secret }}">
+            <div id="card-element"></div>
+            <button id="card-button" class="btn btn-primary mt-2" type="button">
+              Save Card
+            </button>
+          </form>
+    </div>
+</div>
+
+<script>
+    const stripe = Stripe("{{ STRIPE_API_PUBLIC_KEY }}");
+
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+
+    const cardholderName = document.getElementById('cardholder-name');
+    const cardButton = document.getElementById('card-button');
+    const clientSecret = "{{ client_secret }}";
+
+    cardButton.addEventListener('click', function(ev) {
+      stripe.confirmCardSetup(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+          },
+        }
+      ).then(function(result) {
+        if (result.error) {
+          // Display error.message in your UI.
+          toast(result.error.message, 'error');
+        } else {
+          // The setup has succeeded. Display a success message.
+          toast("Payment method is added", 'success');
+          window.location.reload();
+        }
+      });
+    });
+
+</script>
+{% endblock %}

@@ -151,3 +151,5 @@ EMAIL_HOST_USER = 'victorbenosa@gmail.com'
 EMAIL_HOST_PASSWORD = 'Kulundeng5'
 DEFAULT_FROM_EMAIL = 'RetTrip <no-reply@rettrip.localhost'
 FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, "rettrip-fbebc-firebase-adminsdk-5esv3-a580f9b165.json")
+STRIPE_API_PUBLIC_KEY = "pk_test_51JnODGBGNWjL4K2WlhAc7gMLc4av57oGJjfaxmeRNgx2JnqJ3182f7xKxyRmYpOQx5vDrlz6lPtBNlTKSvZxiteh00arynUHag"
+STRIPE_API_SECRET_KEY = "sk_test_51JnODGBGNWjL4K2WPZ5cs0TtYo1viFspGZZpF2NWGZVrLi1a1cLyuVowUXWBysWk5yBMRWTFfbGB3uwPhcywzh7J004PqAQ22g"
