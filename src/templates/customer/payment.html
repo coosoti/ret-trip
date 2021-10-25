@@ -38,18 +38,44 @@
 {% endblock %}
 
 {% block main %}
+
+{% if not request.user.customer.stripe_payment_method_id %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  Add a payment method to <strong>Create a Request</strong>!
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endif %}
 <b class="text-secondary">Debit/Credit Card </b>
 
 <div class="card bg-white mt-2 mb-5">
     <div class="card-body">
+
+        {% if request.user.customer.stripe_payment_method_id %}
+        <div id="update-card" class="input-group">
+          <input type="text" class="form-control" disabled 
+           value="**** **** **** {{ request.user.customer.stripe_card_last4 }}">
+           <div class="input-group-append">
+             <form method="POST">
+               {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Delete</button>
+             </form>
+           </div>
+        </div>
+
+        {% else %}
         <form id="setup-form" data-secret="{{ client_secret }}">
             <div id="card-element"></div>
             <button id="card-button" class="btn btn-primary mt-2" type="button">
               Save Card
-            </button>
-          </form>
+            </button> 
+          </form> 
+        {% endif %}
     </div>
 </div>
+
+{% if not request.user.customer.stripe_payment_method_id %}
 
 <script>
     const stripe = Stripe("{{ STRIPE_API_PUBLIC_KEY }}");
@@ -83,4 +109,7 @@
     });
 
 </script>
+
+{% endif %}
+
 {% endblock %}

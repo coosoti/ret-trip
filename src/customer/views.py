@@ -65,6 +65,14 @@ def profile(request):
 def payment_method(request):
     current_customer = request.user.customer
 
+    # Removing an existing card details
+    if request.method == "POST":
+        stripe.PaymentMethod.detach(current_customer.stripe_payment_method_id)
+        current_customer.stripe_payment_method_id  = ""
+        current_customer.stripe_card_last4 = ""
+        current_customer.save()
+        return redirect(reverse('customer:payment_method'))
+
     # saving current stripe customer info
     if not current_customer.stripe_customer_id:
         customer = stripe.Customer.create()
@@ -90,10 +98,13 @@ def payment_method(request):
         current_customer.stripe_card_last4 = ""
         current_customer.save()
 
-    intent = stripe.SetupIntent.create(
-        customer = current_customer.stripe_customer_id
-    ) 
-    return render(request, 'customer/payment.html', {
-        "client_secret": intent.client_secret,
-        "STRIPE_API_PUBLIC_KEY": settings.STRIPE_API_PUBLIC_KEY,
-    })
+    if not current_customer.stripe_payment_method_id:
+        intent = stripe.SetupIntent.create(
+            customer = current_customer.stripe_customer_id
+        ) 
+        return render(request, 'customer/payment.html', {
+            "client_secret": intent.client_secret,
+            "STRIPE_API_PUBLIC_KEY": settings.STRIPE_API_PUBLIC_KEY,
+        })
+    else:
+        return render(request, 'customer/payment.html')
