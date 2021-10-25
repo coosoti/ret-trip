@@ -13,6 +13,7 @@ import firebase_admin
 from firebase_admin import auth, credentials
 
 from src.customer import forms
+from src.models import *
 
 cred = credentials.Certificate(settings.FIREBASE_ADMIN_CREDENTIAL)
 firebase_admin.initialize_app(cred)
@@ -108,3 +109,36 @@ def payment_method(request):
         })
     else:
         return render(request, 'customer/payment.html')
+
+@login_required(login_url="/login/?next=/customer/")
+def create_task(request):
+    current_customer = request.user.customer
+    if not current_customer.stripe_payment_method_id:
+        return redirect(reverse('customer:payment_method'))
+
+    creating_task = Task.objects.filter(customer = current_customer, status=Task.CREATING_STATUS).last()
+
+    packageInfo_form = forms.PackageInfoForm(instance=creating_task)
+    packagePickup_form = forms.PackagePickupForm(instance=creating_task)
+
+    if request.method == "POST":
+        if request.POST.get('step') == '1':
+            packageInfo_form = forms.PackageInfoForm(request.POST, request.FILES, instance=creating_task)
+            if packageInfo_form.is_valid():
+                creating_task = packageInfo_form.save(commit=False)
+                creating_task.customer = current_customer
+                creating_task.save()
+                return redirect(reverse('customer:create_task'))
+    
+    #
+    if not creating_task:
+        current_step = 1
+    else:
+        current_step = 2
+
+    return render(request, 'customer/create_task.html', {
+        "packageInfo_form": packageInfo_form,
+        "packagePickup_form": packagePickup_form,
+        "task": creating_task,
+        "step": current_step,
+    })
