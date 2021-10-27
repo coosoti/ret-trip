@@ -1,0 +1,191 @@
+{% extends 'customer/base.html' %}
+{% load static %}
+
+{% block head %}
+
+<style>
+    .photo {
+        object-fit: cover ;
+    }
+
+    .photo-blank {
+        border: 2px dashed #DFDFDF;
+        height: 130px;
+        width: 130px;
+        border-radius: 5px;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        padding: 10px;
+    }
+</style>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAP_API_KEY }}&callback=initMap&libraries=places&v=weekly" 
+async></script>
+<script>
+
+    const pickupLat = parseFloat("{{ task.pickup_lat }}");
+    const pickupLng = parseFloat("{{ task.pickup_lng }}");
+    const deliveryLat = parseFloat("{{ task.delivery_lat }}");
+    const deliveryLng = parseFloat("{{ task.delivery_lng }}");
+
+    function initMap() {
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer();
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 7,
+        center: { lat: 41.85, lng: -87.65 },
+    });
+
+    directionsRenderer.setMap(map);
+
+    calculateAndDisplayRoute(map, directionsService, directionsRenderer);
+    }
+
+    function calculateAndDisplayRoute(map, directionsService, directionsRenderer) {
+    directionsService
+        .route({
+            origin: new google.maps.LatLng(pickupLat, pickupLng),
+            destination: new google.maps.LatLng(deliveryLat, deliveryLng),
+            travelMode: google.maps.TravelMode.DRIVING,                                           
+        })
+        .then((response, status) => {
+            new google.maps.DirectionsRenderer({
+                map: map,
+                directions: response,
+                suppressMarkers: true,
+                polylineOptions: {
+                    strokeColor: "#0000EF",
+                    strokeWeight: 5,
+                    strokeOpacity: 0.8
+                }
+            });
+
+            const leg = response.routes[0].legs[0];
+            new google.maps.Marker({
+                position: leg.start_location,
+                map: map,
+               // icon: "{% static 'img/start.png' %}"
+            });
+
+            new google.maps.Marker({
+                position: leg.end_location,
+                map: map,
+                //icon: "{% static 'img/end.png' %}"
+            });
+
+
+            //directionsRenderer.setDirections(response);
+        })
+        .catch((e) => window.alert("Directions request failed due to " + status));
+    }
+
+</script>
+{% endblock %}
+
+{% block main %}
+
+<div class="media mb-4">
+    <img src="{{ task.image.url }}" alt="" class="rounded-lg mr-3" width="150" height="150">
+    <div class="media-body">
+
+        {% if task.status == 'processing' %}
+        <form  method="POST" class="float-right">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Cancel Task</button>
+        </form>
+        {% endif %}
+
+        <h4>{{ task.name }}</h4>
+        <p class="text-secondary">{{ task.description }}</p>
+
+        <div class="row">
+            <div class="col-lg-3">
+                <small class="text-secondary">CATEGORY</small><br />
+                <span><b>{{ task.category.name }}</b></span>
+            </div>
+            <div class="col-lg-3">
+                <small class="text-secondary">SIZE</small><br />
+                <span><b>{{ task.get_size_display }}</b></span>
+            </div>
+            <div class="col-lg-3">
+                <small class="text-secondary">PRICE</small><br />
+                <span><b>{{ task.price }}</b></span>
+            </div>
+            <div class="col-lg-3">
+                <small class="text-secondary">QUANTITY</small><br />
+                <span><b>{{ task.quantity }}</b></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<b class="text-secondary">DELIVERY DETAILS</b><br />
+<div class="card bg-white mt-2 mb-5">
+    <div class="card-body p-4">
+
+        <h4 class="mb-3">
+            Pickup
+        </h4>
+        <div class="row">
+            <div class="col-lg-4">
+                <b>Address</b>
+                <span>{{ task.pickup_address }}</span>
+            </div>
+            <div class="col-lg-4">
+                <b>{{ task.pickup_name }}</b>
+                <span>{{ task.pickup_phone }}</span>
+            </div>
+            <div id="pickup_photo" class="col-lg-4">
+                {% if task.pickup_photo %}
+                <img src="{{ task.pickup_photo }}" alt="" class="rounded-lg photo" width="130" height="130">
+                {% else %}
+                <div class="photo-blank">Pickup Photo Evidence Will Appear Here</div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <hr class="my-4" />
+
+        <h4 class="mb-3">
+            Delivery
+        </h4>
+        <div class="row">
+            <div class="col-lg-4">
+                <b>Address</b>
+                <span>{{ task.delivery_address }}</span>
+            </div>
+            <div class="col-lg-4">
+                <b>{{ task.delivery_name }}</b>
+                <span>{{ task.delivery_phone }}</span>
+            </div>
+            <div id="delivery_photo" class="col-lg-4">
+                {% if task.delivery_photo %}
+                <img src="{{ task.delivery_photo }}" alt="" class="rounded-lg photo" width="130" height="130">
+                {% else %}
+                <div class="photo-blank">Delivery Photo Evidence Will Appear Here</div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="d-flex justify-content-between">
+    <b class="text-secondary">TRACK DELIVERY</b>
+    <div>
+        <span class="badge badge-primary">{{ task.get_status_display }}</span> 
+    </div>
+</div>
+
+<div class="card bg-white mt-2">
+    <div class="card-body p-0">
+        <div id="map" style="height: 500px;"></div>
+    </div>
+</div>
+
+{% endblock %}

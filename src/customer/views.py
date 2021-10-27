@@ -1,3 +1,4 @@
+import requests
 import stripe
 from django.contrib.auth import forms
 from django.shortcuts import redirect, render
@@ -116,11 +117,26 @@ def create_task(request):
     if not current_customer.stripe_payment_method_id:
         return redirect(reverse('customer:payment_method'))
 
+
+    cs_has_current_task = Task.objects.filter(
+        customer = current_customer,
+        status__in = [
+            Task.PROCESSING_STATUS,
+            Task.PICKING_STATUS,
+            Task.DELIVERING_STATUS
+        ]
+    ).exists()
+
+    if cs_has_current_task:
+        messages.warning(request, "You have a task currently in progress")
+        return redirect(reverse('customer:current_tasks'))
+
     creating_task = Task.objects.filter(customer = current_customer, status=Task.CREATING_STATUS).last()
 
     packageInfo_form = forms.PackageInfoForm(instance=creating_task)
     packagePickup_form = forms.PackagePickupForm(instance=creating_task)
-
+    packageDelivery_form = forms.PackageDeliveryForm(instance=creating_task)
+    
     if request.method == "POST":
         if request.POST.get('step') == '1':
             packageInfo_form = forms.PackageInfoForm(request.POST, request.FILES, instance=creating_task)
@@ -129,16 +145,124 @@ def create_task(request):
                 creating_task.customer = current_customer
                 creating_task.save()
                 return redirect(reverse('customer:create_task'))
-    
+
+        elif request.POST.get('step') == '2':
+            packagePickup_form = forms.PackagePickupForm(request.POST, instance=creating_task)
+            if packagePickup_form.is_valid():
+                creating_task = packagePickup_form.save()
+                return redirect(reverse('customer:create_task'))
+
+        elif request.POST.get('step') == '3':
+            packageDelivery_form = forms.PackageDeliveryForm(request.POST, instance=creating_task)
+            if packageDelivery_form.is_valid():
+                creating_task = packageDelivery_form.save()
+                try:
+                    rq = requests.get("https://maps.googleapis.com/maps/api/distancematrix/json?origins={}&destinations={}&transit_mode=bus&key={}".format(
+                        creating_task.pickup_address,
+                        creating_task.delivery_address,
+                        settings.GOOGLE_MAP_API_KEY,
+                    ))
+
+                    print(rq.json()['rows'])
+
+                    distance = rq.json()['rows'][0]['elements'][0]['distance']['value']
+                    duration = rq.json()['rows'][0]['elements'][0]['duration']['value']
+                    creating_task.distance = round(distance / 1000, 2)
+                    creating_task.duration = int(duration / 60)
+                    creating_task.price = creating_task.distance * .50
+                    creating_task.save()
+                except Exception as e:
+                    print(e)
+                    messages.error(request, "Unfortunately, we do not deliver to Mars")
+                return redirect(reverse('customer:create_task'))
+
+        elif request.POST.get('step') == '4':
+            if creating_task.price:
+                try:
+                    payment_intent = stripe.PaymentIntent.create(
+                        amount=int(creating_task.price * 100),
+                        currency='kes',
+                        customer=current_customer.stripe_customer_id,
+                        payment_method=current_customer.stripe_payment_method_id,
+                        off_session=True,
+                        confirm=True,
+                    )
+
+                    Transaction.objects.create(
+                        stripe_payment_intent_id = payment_intent['id'],
+                        task = creating_task,
+                        amount = creating_task.price,
+                    )
+
+                    creating_task.status = Task.PROCESSING_STATUS
+                    creating_task.save()
+
+                    return redirect(reverse('customer:home'))
+
+                except stripe.error.CardError as e:
+                    err = e.error
+                    # Error code will be authentication_required if authentication is needed
+                    print("Code is: %s" % err.code)
+                    payment_intent_id = err.payment_intent['id']
+                    payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
     #
     if not creating_task:
-        current_step = 1
+        current_step = 1  
+    elif creating_task.delivery_name:
+        current_step = 4
+    elif creating_task.pickup_name:
+        current_step = 3
     else:
         current_step = 2
 
     return render(request, 'customer/create_task.html', {
         "packageInfo_form": packageInfo_form,
         "packagePickup_form": packagePickup_form,
+        "packageDelivery_form": packageDelivery_form,
         "task": creating_task,
         "step": current_step,
+        "GOOGLE_MAP_API_KEY": settings.GOOGLE_MAP_API_KEY,
+    })
+
+@login_required(login_url="/login/?next=/customer/")
+def current_tasks(request):
+    tasks = Task.objects.filter(
+        customer=request.user.customer,
+        status__in=[
+            Task.PROCESSING_STATUS,
+            Task.PICKING_STATUS,
+            Task.DELIVERING_STATUS
+        ]
+    )
+
+    return render(request, 'customer/tasks.html', {
+        "tasks": tasks,
+    })
+
+@login_required(login_url="/login/?next=/customer/")
+def archived_tasks(request):
+    tasks = Task.objects.filter(
+        customer=request.user.customer,
+        status__in=[
+            Task.COMPLETED_STATUS,
+            Task.CANCELED_STATUS
+        ]
+    )
+
+    return render(request, 'customer/tasks.html', {
+        "tasks": tasks,
+    }) 
+
+@login_required(login_url="/login/?next=/customer/")
+def task_page(request, task_id):
+    task = Task.objects.get(id=task_id)
+
+    if request.method == "POST" and task.status == Task.PROCESSING_STATUS:
+        task.status = Task.CANCELED_STATUS
+        task.save()
+        return redirect(reverse('customer:archived_tasks'))
+
+    return render(request, 'customer/task.html', {
+        "task": task,
+        "GOOGLE_MAP_API_KEY": settings.GOOGLE_MAP_API_KEY,
     })

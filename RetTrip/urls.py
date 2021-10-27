@@ -29,6 +29,10 @@ customer_urlpatterns = [
     path('profile/', customer_views.profile, name="profile"),
     path('payment_method/', customer_views.payment_method, name="payment_method"),
     path('create_task/', customer_views.create_task, name="create_task"),
+
+    path('tasks/current/', customer_views.current_tasks, name="current_tasks"),
+    path('tasks/archived/', customer_views.archived_tasks, name="archived_tasks"),
+    path('tasks/<task_id>/', customer_views.task_page, name="task"),
 ]
 
 driver_urlpatterns = [

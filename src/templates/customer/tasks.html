@@ -1,0 +1,71 @@
+{% extends 'customer/base.html' %}
+
+
+{% block main %}
+
+{% url 'customer:current_tasks' as url_current_tasks %}
+{% url 'customer:archived_tasks' as url_archived_tasks %}
+
+<ul class="nav nav-pills nav-fill">
+    <li class="nav-item">
+      <a class="nav-link {% if request.path == url_current_tasks %}active{% endif %}" 
+      href="{% url 'customer:current_tasks' %}">My Current Task</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.path == url_archived_tasks %}active{% endif %}" 
+        href="{% url 'customer:archived_tasks' %}">My Archived Tasks</a>
+      </li>
+  </ul>
+
+  <div class="list-group mt-3">
+      {% if tasks %}
+
+      {% for task in tasks %}
+      <a href="{% url 'customer:task' task.id %}" class="list-group-item list-group-item-action">
+          <div class="media">
+              <img src="{{ task.image.url }}" alt="" class="rounded-lg mr-3" width="100" height="100">
+              <div class="media-body">
+                  <div class="row">
+                      <div class="col-lg-9">
+                          <h5 class="mb-1">{{ task.name }}</h5>
+                          <p>{{ task.description }}</p>
+
+                          <div class="d-flex mb-4">
+                              <i class="fas fa-map-marker-alt"></i>
+                              <div class="ml-2">
+                                  <b>{{ task.pickup_name }}</b><br />
+                                  <small>{{ task.pickup_address }}</small>
+                              </div>
+                          </div>
+
+                          <div class="d-flex">
+                            <i class="fas fa-flag-checkered"></i>
+                            <div class="ml-2">
+                                <b>{{ task.delivery_name }}</b><br />
+                                <small>{{ task.delivery_address }}</small>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 text-right d-flex flex-column justify-content-between">
+                          <div><span class="badge badge-primary mb-2">{{ task.get_status_display }}</span></div>
+                          <b class="mb-1">KES {{ task.price }}</b>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </a>
+
+      {% endfor %}
+
+      {% else %}
+
+        <div class="card">
+            <div class="card-body text-center">
+                You have not requested any tasks yet.
+            </div>
+        </div>
+      {% endif %}
+
+  </div>
+
+{% endblock %}

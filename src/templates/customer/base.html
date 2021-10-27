@@ -4,6 +4,8 @@
 {% block content %}
 
 {% url 'customer:create_task' as url_create_task %}
+{% url 'customer:current_tasks' as url_current_tasks %}
+{% url 'customer:archived_tasks' as url_archived_tasks %}
 {% url 'customer:profile' as url_profile %}
 {% url 'customer:payment_method' as url_payment %}
 
@@ -18,7 +20,7 @@
            </div>
            <div class="list-group mt-5">
                 <a href="{% url 'customer:create_task' %}" class="list-group-item list-group-item-action {% if request.path == url_create_task %}active{% endif %}">Create A Request</a>
-                <a href="#" class="list-group-item list-group-item-action">My Requests</a>
+                <a href="{% url 'customer:current_tasks' %}" class="list-group-item list-group-item-action {% if request.path == url_current_tasks or request.path == url_archived_tasks %}active{% endif %}">My Tasks</a>
                 <a href="{% url 'customer:payment_method' %}" class="list-group-item list-group-item-action {% if request.path == url_payment %}active{% endif %}">My Payment Details</a>
                 <a href="{% url 'customer:profile' %}" class="list-group-item list-group-item-action {% if request.path == url_profile %}active{% endif %}">My Profile</a>
            </div>

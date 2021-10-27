@@ -27,3 +27,12 @@ class PackagePickupForm(forms.models.ModelForm):
     class Meta:
         model = Task
         fields = ('pickup_address', 'pickup_lat', 'pickup_lng', 'pickup_name', 'pickup_phone')
+
+class PackageDeliveryForm(forms.models.ModelForm):
+    delivery_address = forms.CharField(required=True)
+    delivery_name = forms.CharField(required=True)
+    delivery_phone = forms.CharField(required=True)
+ 
+    class Meta:
+        model = Task
+        fields = ('delivery_address', 'delivery_lat', 'delivery_lng', 'delivery_name', 'delivery_phone')
