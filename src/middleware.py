@@ -1,4 +1,4 @@
-from .models import Customer
+from .models import Customer, Driver
 
 class UserProfileMiddleware:
     def __init__(self, get_response):
@@ -11,6 +11,10 @@ class UserProfileMiddleware:
     
         if request.user.is_authenticated and not hasattr(request.user, 'customer'):
             Customer.objects.create(user=request.user)
+
+
+        if request.user.is_authenticated and not hasattr(request.user, 'driver'):
+            Driver.objects.create(user=request.user)
 
         response = self.get_response(request)
 

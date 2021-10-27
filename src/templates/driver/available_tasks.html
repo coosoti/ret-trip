@@ -1,0 +1,125 @@
+{% extends 'driver/base.html' %}
+
+{% block head %}
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAP_API_KEY }}&callback=initMap&libraries=places&v=weekly" 
+async></script>
+
+<script>
+  function initMap() {
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer();
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: { lat: 41.85, lng: -87.65 },
+    });
+
+    fetch("{% url 'driver:available_tasks_api' %}")
+    .then(response => response.json())
+    .then(json => {
+      //console.log(json)
+
+      const bounds = new google.maps.LatLngBounds();
+
+      for (let i=0; i < json.tasks.length; i++) {
+        const task = json.tasks[i];
+        const position =  {lat: task.pickup_lat, lng: task.pickup_lng };
+        const marker = new google.maps.Marker({
+          position,
+          map,
+        });
+
+        bounds.extend(position);
+        
+        new google.maps.InfoWindow({
+          content: "<small><b>" + task.name + "</b></small><br/><small>" + task.distance + "Km </small>"
+        }).open(map, marker);
+
+        marker.addListener("click", () => {
+          showTaskDetails(task);
+        });
+
+        map.fitBounds(bounds);
+      }
+    })
+  }
+
+  function showTaskDetails(task) {
+    $("#task-details").css("display", "block");
+    $("#task-name").html(task.name);
+
+    $("#task-image").attr('src', "/media/" + task.image);
+    $("#pickup-address").html(task.pickup_address);
+    $("#delivery-address").html(task.delivery_address);
+    $("#duration").html(task.duration);
+    $("#distance").html(task.distance);
+    $("#price").html(task.price);
+  }
+</script>
+<style>
+  .gm-ui-hover-effect {
+    display: none !important;
+  }
+
+  #map {
+    flex: 1;
+  }
+  
+  small {
+    font-size: 12px;
+    line-height: 1.2rem;
+  }
+
+  .card {
+    border: none;
+  }
+
+  #task-details {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="d-flex flex-column h-100" style="padding-bottom: 60px">
+  <div id="map"></div>
+
+  <div id="task-details" class="card">
+    <div class="card-body p-2">
+      <div class="media">
+        <img src="" alt="" id="task-image" class="rounded-lg mr-3" width="50px" height="50px">
+        <div class="media-body">
+          <b id="task-name"></b>
+          <div class="d-flex">
+            <div class="flex-grow-1 mr-2">
+
+              <small class="text-success">
+                <i class="fas fa-car"></i><span id="distance"></span> Km
+                <i class="fas fa-clock ml-2"></i><span id="duration"></span> Mins
+              </small>
+
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-map-marker-alt"></i>
+                <small id="pickup-address" class="text-secondary ml-2"></small>
+              </div>
+
+              <div class="d-flex align-items-center mt-2">
+                <i class="fas fa-map-marker-alt"></i>
+                <small id="delivery-address" class="text-secondary ml-2"></small>
+              </div>
+
+            </div>
+
+            KES <h3 id="price"></h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'driver/bottom_tabs.html' %}
+
+{% endblock %}

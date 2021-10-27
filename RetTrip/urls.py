@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 
 from src import views
 from src.customer import views as customer_views
-from src.driver import views as driver_views
+from src.driver import views as driver_views, api as driver_api
 
 customer_urlpatterns = [
     path('', customer_views.home, name="home"),
@@ -36,8 +36,11 @@ customer_urlpatterns = [
 ]
 
 driver_urlpatterns = [
-    path('', driver_views.home, name="home") 
-]
+    path('', driver_views.home, name="home"),
+    path('tasks/available/', driver_views.available_tasks, name="available_tasks"),
+
+    path('api/v1/tasks/available/', driver_api.available_tasks_api, name="available_tasks_api"),
+] 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -49,7 +52,7 @@ urlpatterns = [
     path('register/', views.register),
 
     path('customer/', include((customer_urlpatterns, 'customer'))),
-    path('customer/', include((driver_urlpatterns, 'driver'))),
+    path('driver/', include((driver_urlpatterns, 'driver'))),
 ]
 
 if settings.DEBUG:

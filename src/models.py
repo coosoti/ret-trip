@@ -22,6 +22,15 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class Driver(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    lat = models.FloatField(default=0)
+    lng = models.FloatField(default=0)
+    
+    def __str__(self):
+        return self.user.get_full_name()
+
+
 class Task(models.Model):
     SMALL_SIZE = 'small'
     MEDIUM_SIZE = 'medium'
@@ -49,6 +58,7 @@ class Task(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     category = ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
@@ -77,7 +87,7 @@ class Task(models.Model):
     distance = models.FloatField(default=0)
     price = models.FloatField(default=0)
 
-    pickup_photo = models.ImageField(upload_to='tasks/pickup_photos/', null=True, blank=True)
+    pickup_photo = models.ImageField(upload_to='tasks/pick up_photos/', null=True, blank=True)
     pickedup_at = models.DateTimeField(null=True, blank=True)
 
     delivery_photo = models.ImageField(upload_to='tasks/delivery_photos/', null=True, blank=True)
