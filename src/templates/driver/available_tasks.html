@@ -36,7 +36,7 @@ async></script>
         }).open(map, marker);
 
         marker.addListener("click", () => {
-          showTaskDetails(task);
+          showTaskDetails(task); 
         });
 
         map.fitBounds(bounds);
@@ -54,6 +54,10 @@ async></script>
     $("#duration").html(task.duration);
     $("#distance").html(task.distance);
     $("#price").html(task.price);
+
+    $("#task-details").on("click", function () {
+      window.location.href = "/driver/tasks/available/" + task.id + "/";
+    })
   }
 </script>
 <style>

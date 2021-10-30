@@ -34,12 +34,16 @@ customer_urlpatterns = [
     path('tasks/archived/', customer_views.archived_tasks, name="archived_tasks"),
     path('tasks/<task_id>/', customer_views.task_page, name="task"),
 ]
-
+ 
 driver_urlpatterns = [
     path('', driver_views.home, name="home"),
     path('tasks/available/', driver_views.available_tasks, name="available_tasks"),
+    path('tasks/available/<id>/', driver_views.available_task, name="available_task"),
+    path('tasks/current/', driver_views.current_task, name="current_task"),
+    path('tasks/current/<id>/photo_evidence/', driver_views.photo_evidence, name="photo_evidence"),
 
     path('api/v1/tasks/available/', driver_api.available_tasks_api, name="available_tasks_api"),
+    path('api/v1/tasks/current/<id>/update', driver_api.current_task_update_api, name="current_task_update_api"),
 ] 
 
 urlpatterns = [

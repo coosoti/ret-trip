@@ -87,7 +87,7 @@ class Task(models.Model):
     distance = models.FloatField(default=0)
     price = models.FloatField(default=0)
 
-    pickup_photo = models.ImageField(upload_to='tasks/pick up_photos/', null=True, blank=True)
+    pickup_photo = models.ImageField(upload_to='tasks/pickup_photos/', null=True, blank=True)
     pickedup_at = models.DateTimeField(null=True, blank=True)
 
     delivery_photo = models.ImageField(upload_to='tasks/delivery_photos/', null=True, blank=True)

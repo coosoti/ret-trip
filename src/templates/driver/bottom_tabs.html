@@ -34,13 +34,17 @@
   }
 
 </style>
+
+{% url 'driver:available_tasks' as url_available_tasks %}
+{% url 'driver:current_task' as url_current_task %}
+
 <div class="bottom-tabs d-flex">
-  <a href="#" class="active">
+  <a href="{% url 'driver:available_tasks' %}" class="{% if request.path == url_available_tasks %}active{% endif %}">
     <i class="fas fa-map-marked-alt"></i>
     <span>Available Tasks</span>
   </a>
 
-  <a href="#">
+  <a href="{% url 'driver:current_task' %}" class="{% if request.path == url_current_task %}active{% endif %}">
     <i class="fas fa-archive"></i>
     <span>My Tasks</span>
   </a>
@@ -50,4 +54,4 @@
     <span>Profile</span>
   </a>
 
-</div>
+</div> 
